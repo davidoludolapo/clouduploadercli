@@ -25,12 +25,10 @@ if [ ! -f "$FILE_PATH" ]; then
   exit 1
 fi
 
-# Extract the file name from the file path
-FILE_NAME=$(basename "$FILE_PATH")
-
-# Upload file to S3
+# Upload file to S3 with progress bar
+FILE_SIZE=$(stat --printf="%s" "$FILE_PATH")
 echo "Uploading $FILE_NAME to s3://$BUCKET_NAME/$TARGET_DIR/ ..."
-aws s3 cp "$FILE_PATH" "s3://$BUCKET_NAME/$TARGET_DIR/$FILE_NAME"
+pv -s "$FILE_SIZE" "$FILE_PATH" | aws s3 cp - "s3://$BUCKET_NAME/$TARGET_DIR/$FILE_NAME" --expected-size "$FILE_SIZE"
 
 if [ $? -eq 0 ]; then
   echo "Upload successful!"
